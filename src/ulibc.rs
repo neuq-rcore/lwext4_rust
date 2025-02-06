@@ -14,6 +14,7 @@ unsafe extern "C" fn printf(str: *const c_char, mut args: ...) -> c_int {
     let mut s = String::new();
     let bytes_written = format(str as _, args.as_va_list(), output::fmt_write(&mut s));
     //println!("{}", s);
+    #[cfg(not(feature = "shutfuckup"))]
     info!("{}", s);
 
     bytes_written
@@ -27,6 +28,7 @@ unsafe extern "C" fn printf(str: *const c_char, mut args: ...) -> c_int {
     let c_str = unsafe { CStr::from_ptr(str) };
     //let arg1 = args.arg::<usize>();
 
+    #[cfg(not(feature = "shutfuckup"))]
     info!("[lwext4] {:?}", c_str);
     0
 }
@@ -51,12 +53,14 @@ pub extern "C" fn calloc(m: c_size_t, n: c_size_t) -> *mut c_void {
 #[no_mangle]
 pub extern "C" fn realloc(memblock: *mut c_void, size: c_size_t) -> *mut c_void {
     if memblock.is_null() {
+        #[cfg(not(feature = "shutfuckup"))]
         warn!("realloc a a null mem pointer");
         return malloc(size);
     }
 
     let ptr = memblock.cast::<MemoryControlBlock>();
     let old_size = unsafe { ptr.sub(1).read().size };
+    #[cfg(not(feature = "shutfuckup"))]
     info!("realloc from {} to {}", old_size, size);
 
     let mem = malloc(size);
@@ -103,6 +107,7 @@ pub extern "C" fn malloc(size: c_size_t) -> *mut c_void {
 #[no_mangle]
 pub extern "C" fn free(ptr: *mut c_void) {
     if ptr.is_null() {
+        #[cfg(not(feature = "shutfuckup"))]
         warn!("free a null pointer !");
         return;
     }

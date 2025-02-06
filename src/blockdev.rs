@@ -100,17 +100,22 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
             // expect("Failed to mount the ext4 file system, perhaps the disk is not an EXT4 file system.");
         }
 
-        ext4bd.lwext4_dir_ls();
-        ext4bd.print_lwext4_mp_stats();
-        ext4bd.print_lwext4_block_stats();
+        #[cfg(not(feature = "shutfuckup"))]
+        {
+            ext4bd.lwext4_dir_ls();
+            ext4bd.print_lwext4_mp_stats();
+            ext4bd.print_lwext4_block_stats();
+        }
 
         Ok(ext4bd)
     }
     pub unsafe extern "C" fn dev_open(bdev: *mut ext4_blockdev) -> ::core::ffi::c_int {
         let p_user = (*(*bdev).bdif).p_user;
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("OPEN Ext4 block device p_user={:#x}", p_user as usize);
         // DevType: Disk
         if p_user as usize == 0 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("Invalid null pointer of p_user");
             return EIO as _;
         }
@@ -124,6 +129,7 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
         let cur = match seek_off {
             Ok(v) => v,
             Err(e) => {
+                #[cfg(not(feature = "shutfuckup"))]
                 error!("dev_open to K::seek failed: {:?}", e);
                 return EFAULT as _;
             }
@@ -140,6 +146,7 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
         blk_id: u64,
         blk_cnt: u32,
     ) -> ::core::ffi::c_int {
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("READ Ext4 block id: {}, count: {}", blk_id, blk_cnt);
         let devt = unsafe { &mut *((*(*bdev).bdif).p_user as *mut K::DevType) };
 
@@ -174,6 +181,7 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
         blk_id: u64,
         blk_cnt: u32,
     ) -> ::core::ffi::c_int {
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("WRITE Ext4 block id: {}, count: {}", blk_id, blk_cnt);
 
         let devt = unsafe { &mut *((*(*bdev).bdif).p_user as *mut K::DevType) };
@@ -209,6 +217,7 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
         EOK as _
     }
     pub unsafe extern "C" fn dev_close(_bdev: *mut ext4_blockdev) -> ::core::ffi::c_int {
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("CLOSE Ext4 block device");
         //fclose(dev_file);
         EOK as _
@@ -220,16 +229,19 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
 
         let r = ext4_device_register(self.value.as_mut(), c_name);
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_device_register: rc = {:?}\n", r);
             return Err(r);
         }
         let r = ext4_mount(c_name, c_mountpoint, false);
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_mount: rc = {:?}\n", r);
             return Err(r);
         }
         let r = ext4_recover(c_mountpoint);
         if (r != EOK as i32) && (r != ENOTSUP as i32) {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_recover: rc = {:?}\n", r);
             return Err(r);
         }
@@ -243,12 +255,14 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
         //  ext4_umount("/");
         let r = ext4_journal_start(c_mountpoint);
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_journal_start: rc = {:?}\n", r);
             return Err(r);
         }
         ext4_cache_write_back(c_mountpoint, true);
         // ext4_bcache
 
+        #[cfg(not(feature = "shutfuckup"))]
         info!("lwext4 mount Okay");
         Ok(0)
     }
@@ -263,23 +277,27 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
 
             let r = ext4_journal_stop(c_mountpoint);
             if r != EOK as i32 {
+                #[cfg(not(feature = "shutfuckup"))]
                 error!("ext4_journal_stop: fail {}", r);
                 return Err(r);
             }
 
             let r = ext4_umount(c_mountpoint);
             if r != EOK as i32 {
+                #[cfg(not(feature = "shutfuckup"))]
                 error!("ext4_umount: fail {}", r);
                 return Err(r);
             }
 
             let r = ext4_device_unregister(c_name);
             if r != EOK as i32 {
+                #[cfg(not(feature = "shutfuckup"))]
                 error!("ext4_device_unregister: fail {}", r);
                 return Err(r);
             }
         }
 
+        #[cfg(not(feature = "shutfuckup"))]
         info!("lwext4 umount Okay");
         Ok(0)
     }
@@ -377,6 +395,7 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
 
 impl<K: KernelDevOp> Drop for Ext4BlockWrapper<K> {
     fn drop(&mut self) {
+        #[cfg(not(feature = "shutfuckup"))]
         info!("Drop struct Ext4BlockWrapper");
         let _ = self.lwext4_umount();
         let devtype = unsafe { Box::from_raw((*(&self.value).bdif).p_user as *mut K::DevType) };

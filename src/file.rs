@@ -125,9 +125,11 @@ impl Ext4File {
             drop(CString::from_raw(c_path));
         }
         if r == EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             debug!("{:?} {} Exist", mtype, path);
             true //Exist
         } else {
+            #[cfg(not(feature = "shutfuckup"))]
             debug!("{:?} {} No Exist. ext4_inode_exist rc = {}", mtype, path, r);
             false
         }
@@ -145,6 +147,7 @@ impl Ext4File {
             drop(CString::from_raw(c_new_path));
         }
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_frename error: rc = {}", r);
             return Err(r);
         }
@@ -153,6 +156,7 @@ impl Ext4File {
 
     /// Remove file by path.
     pub fn file_remove(&mut self, path: &str) -> Result<usize, i32> {
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("file_remove {}", path);
 
         let c_path = CString::new(path).expect("CString::new failed");
@@ -163,6 +167,7 @@ impl Ext4File {
             drop(CString::from_raw(c_path));
         }
         if (r != EOK as i32) && (r != ENOENT as i32) {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_fremove error: rc = {}", r);
             return Err(r);
         }
@@ -174,12 +179,14 @@ impl Ext4File {
         let size = self.file_size() as i64;
 
         if offset > size {
+            #[cfg(not(feature = "shutfuckup"))]
             warn!("Seek beyond the end of the file");
             offset = size;
         }
 
         let r = unsafe { ext4_fseek(&mut self.file_desc, offset, seek_type) };
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_fseek: rc = {}", r);
             return Err(r);
         }
@@ -198,10 +205,12 @@ impl Ext4File {
         };
 
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_fread: rc = {}", r);
             return Err(r);
         }
 
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("file_read {:?}, len={}", self.get_path(), rw_count);
 
         Ok(rw_count)
@@ -234,17 +243,21 @@ impl Ext4File {
         };
 
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_fwrite: rc = {}", r);
             return Err(r);
         }
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("file_write {:?}, len={}", self.get_path(), rw_count);
         Ok(rw_count)
     }
 
     pub fn file_truncate(&mut self, size: u64) -> Result<usize, i32> {
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("file_truncate to {}", size);
         let r = unsafe { ext4_ftruncate(&mut self.file_desc, size) };
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_ftruncate: rc = {}", r);
             return Err(r);
         }
@@ -262,6 +275,7 @@ impl Ext4File {
         unsafe {
             let r = ext4_cache_flush(c_path);
             if r != EOK as i32 {
+                #[cfg(not(feature = "shutfuckup"))]
                 error!("ext4_cache_flush: rc = {}", r);
                 return Err(r);
             }
@@ -280,14 +294,17 @@ impl Ext4File {
             drop(CString::from_raw(c_path));
         }
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_mode_get: rc = {}", r);
             return Err(r);
         }
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("Got file mode={:#x}", mode);
         Ok(mode)
     }
 
     pub fn file_mode_set(&mut self, mode: u32) -> Result<usize, i32> {
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("file_mode_set to {:#x}", mode);
 
         let c_path = self.file_path.clone();
@@ -297,6 +314,7 @@ impl Ext4File {
             drop(CString::from_raw(c_path));
         }
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_mode_set: rc = {}", r);
             return Err(r);
         }
@@ -321,10 +339,12 @@ impl Ext4File {
             0xC000 => InodeTypes::EXT4_INODE_MODE_SOCKET,
             0xF000 => InodeTypes::EXT4_INODE_MODE_TYPE_MASK,
             _ => {
+                #[cfg(not(feature = "shutfuckup"))]
                 warn!("Unknown inode mode type {:x}", types);
                 InodeTypes::EXT4_INODE_MODE_FILE
             }
         };
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("Inode mode types: {:?}", itypes);
 
         itypes
@@ -334,6 +354,7 @@ impl Ext4File {
 
     /// Create new directory
     pub fn dir_mk(&mut self, path: &str) -> Result<usize, i32> {
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("directory create: {}", path);
         let c_path = CString::new(path).expect("CString::new failed");
         let c_path = c_path.into_raw();
@@ -343,6 +364,7 @@ impl Ext4File {
             drop(CString::from_raw(c_path));
         }
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_dir_mk: rc = {}", r);
             return Err(r);
         }
@@ -351,6 +373,7 @@ impl Ext4File {
 
     /// Rename/move directory
     pub fn dir_mv(&mut self, path: &str, new_path: &str) -> Result<usize, i32> {
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("directory move from {} to {}", path, new_path);
 
         let c_path = CString::new(path).expect("CString::new failed");
@@ -364,6 +387,7 @@ impl Ext4File {
             drop(CString::from_raw(c_new_path));
         }
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_dir_mv: rc = {}", r);
             return Err(r);
         }
@@ -372,6 +396,7 @@ impl Ext4File {
 
     /// Recursive directory remove
     pub fn dir_rm(&mut self, path: &str) -> Result<usize, i32> {
+        #[cfg(not(feature = "shutfuckup"))]
         debug!("directory recursive remove: {}", path);
 
         let c_path = CString::new(path).expect("CString::new failed");
@@ -382,6 +407,7 @@ impl Ext4File {
             drop(CString::from_raw(c_path));
         }
         if (r != EOK as i32) && (r != ENOENT as i32) {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_fremove ext4_dir_rm: rc = {}", r);
             return Err(r);
         }
@@ -414,6 +440,7 @@ impl Ext4File {
                 sss[..len].copy_from_slice(&dentry.name[..len]);
                 sss[len] = 0;
 
+                #[cfg(not(feature = "shutfuckup"))]
                 debug!(
                     "  {} {}",
                     dentry.inode_type,
@@ -489,6 +516,7 @@ impl From<usize> for InodeTypes {
             0xC000 => InodeTypes::EXT4_INODE_MODE_SOCKET,
             0xF000 => InodeTypes::EXT4_INODE_MODE_TYPE_MASK,
             _ => {
+                #[cfg(not(feature = "shutfuckup"))]
                 warn!("Unknown ext4 inode type: {}", num);
                 InodeTypes::EXT4_DE_UNKNOWN
             }
