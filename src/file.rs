@@ -25,8 +25,8 @@ impl Ext4File {
         }
     }
 
-    pub fn get_path(&self) -> CString {
-        self.file_path.clone()
+    pub fn get_path(&self) -> &CString {
+        &self.file_path
     }
 
     pub fn get_type(&self) -> InodeTypes {
