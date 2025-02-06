@@ -50,7 +50,7 @@ impl Ext4File {
     /// |---------------------------------------------------------------|
     pub fn file_open(&mut self, path: &str, flags: u32) -> Result<usize, i32> {
         let c_path = CString::new(path).expect("CString::new failed");
-        if c_path != self.get_path() {
+        if &c_path != self.get_path() {
             debug!(
                 "Ext4File file_open, cur path={}, new path={}",
                 self.file_path.to_str().unwrap(),
