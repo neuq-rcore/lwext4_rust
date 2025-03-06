@@ -24,3 +24,6 @@ printf-compat = { version = "0.1", default-features = false, optional = true }
 #[build-dependencies]
 #[target.'cfg(unix)'.build-dependencies]
 #bindgen = "0.69"
+
+[patch.crates-io]
+cty = { path = "patches/cty" }
