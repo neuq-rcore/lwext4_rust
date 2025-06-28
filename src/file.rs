@@ -69,6 +69,7 @@ impl Ext4File {
             drop(CString::from_raw(flags));
         }
         if r != EOK as i32 {
+            #[cfg(not(feature = "shutfuckup"))]
             error!("ext4_fopen: {}, rc = {}", path, r);
             return Err(r);
         }
